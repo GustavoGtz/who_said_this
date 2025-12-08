@@ -4,4 +4,6 @@ version = "0.1.0"
 description = "Who Said This dependencies"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "fastapi>=0.124.0",
+]
