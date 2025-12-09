@@ -4,14 +4,18 @@ from typing import List
 from who.whatsapp.chat_reader import WhatsappReader
 from who.models import Filter, Message
 
+"""
+How to open the endpoints:
+
+> uv run uvicorn main:app --reload
+"""
 
 app = FastAPI(
-    title="Who Said API",
+    title="Who Said This API",
     description="POC API for reading WhatsApp chats",
     version="0.1.0",
 )
 
-# Global instance of the reader
 wr: WhatsappReader | None = None
 
 @app.post("/load_chat", summary="Load WhatsApp chat file")
@@ -36,7 +40,7 @@ async def get_members() -> List[str]:
         return {"error": "Chat not loaded"}
     return wr.get_members()
 
-@app.post("/get_messages_number", summary="Count messages using a filter")
+@app.get("/get_messages_number", summary="Count messages using a filter")
 async def get_messages_number(filter: Filter) -> int:
     global wr
     if wr is None:
@@ -44,7 +48,7 @@ async def get_messages_number(filter: Filter) -> int:
     return wr.get_messages_number(filter)
 
 
-@app.post("/get_messages", summary="Get messages using a filter")
+@app.get("/get_messages", summary="Get messages using a filter")
 async def get_messages(filter: Filter) -> List[Message]:
     global wr
     if wr is None:

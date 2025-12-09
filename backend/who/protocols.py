@@ -4,9 +4,6 @@ from who.models import Message, Filter
 
 class ChatReader(Protocol):
     
-    def process_chat(self) -> None:
-        ...
-    
     def get_members(self) -> Sequence[str]:
         ...
     
