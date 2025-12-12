@@ -18,7 +18,7 @@ app = FastAPI(
 
 wr: WhatsappReader | None = None
 
-@app.post("/load_chat", summary="Load WhatsApp chat file")
+@app.post("/api/load_chat", summary="Load WhatsApp chat file")
 async def load_chat(file: UploadFile = File(...)):
     global wr
 
@@ -33,14 +33,14 @@ async def load_chat(file: UploadFile = File(...)):
 
     return {"status": "chat loaded", "filename": file.filename}
 
-@app.get("/get_members", summary="Return list of chat members")
+@app.get("/api/get_members", summary="Return list of chat members")
 async def get_members() -> List[str]:
     global wr
     if wr is None:
         return {"error": "Chat not loaded"}
     return wr.get_members()
 
-@app.get("/get_messages_number", summary="Count messages using a filter")
+@app.get("/api/get_messages_number", summary="Count messages using a filter")
 async def get_messages_number(filter: Filter) -> int:
     global wr
     if wr is None:
@@ -48,7 +48,7 @@ async def get_messages_number(filter: Filter) -> int:
     return wr.get_messages_number(filter)
 
 
-@app.get("/get_messages", summary="Get messages using a filter")
+@app.get("/api/get_messages", summary="Get messages using a filter")
 async def get_messages(filter: Filter) -> List[Message]:
     global wr
     if wr is None:
