@@ -184,21 +184,36 @@ class WhatsappReader:
     
     """
     Remove messages like:
+     * This process uses Spanish languge *
     11/12/2025, 11:05 AM - Foo: Okey
     11/12/2025, 11:06 AM - Foo: Haha
     """
     def remove_low_quality_messages(self):
+        low_quality_words = ["a"]
+
+        msg_patterns = [r'(?P<date>[\d]{1,2}\/[\d]{1,2}\/[\d]{1,2})'
+                        r', (?P<time>[\d]{1,2}:[\d]{1,2}.[AP]M)',
+                        r' - (?P<member>[^:]+):',
+                        r' (?P<text>.*)']
+        msg_pattern = re.compile(''.join(msg_patterns), re.DOTALL)
+
+        def clean_text(text, stop_words):
+            text = text.lower()
+            text = text.translate(str.maketrans('', '', string.punctuation))
+            words = text.split()
+            return [w for w in words if w not in stop_words]
+        
         def good_enough(msg):
-            # TODO: Esta funcion recivira una cadena de texto con formato estilo:
-            #       > 11/12/2025, 11:05 AM - Foo: Hola, como estan?
-            #       Esta funcion debera analizar dicho texto y determinar si cumple
-            #       con ciertos estandares de calidad.
-            #       SI los cumple devuelve True, en caso contario False.
-            #       
-            #       Estos criterios son arbitrarios, una idea inicial seria contar
-            #       el numero de palabras, de letras, ver cuanto porcentaje de la
-            #       oracion tiene PALABRAS VALIOSAS (es decir, que no sean 'y', 'a', 'es', etc)
-            ...
+            m = msg_pattern.match(msg)
+            if m:
+                msg_text = m.group("text")
+
+                msg_words = clean_text(msg_text)
+
+                if len(msg_words) > 10:
+                    return True
+                else:
+                    return False
             
         self.chat = list(filter(good_enough, self.chat))
         
