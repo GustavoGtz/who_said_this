@@ -1,4 +1,116 @@
-@import './base.css';
+/* =========================
+   VARIABLES GLOBALES
+   ========================= */
+:root {
+  /* Tipografía */
+  --font-main: 'Inter', system-ui, sans-serif;
+
+  /* Colores base (LIGHT MODE) */
+  --bg-main: #58cc02;
+  --bg-accent: #89e219;
+
+  --card-bg: #ffffff;
+  --card-border: #89e219;
+
+  --text-main: #4b4b4b;
+  --text-muted: #777777;
+
+  --primary: #58cc02;       /* Verde */
+  --primary-hover: #89e219;
+
+  --danger: #ff4b4b;
+  --help: #1cb0f6;
+  --help-hover: #2b70c9;
+
+  --player-one: #ff4b4b;
+  --player-two: #1cb0f6;
+  --player-three: #ffc800;
+  --player-four: #ce82ff;
+}
+
+/* =========================
+   RESET
+   ========================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* =========================
+   BODY
+   ========================= */
+body {
+  font-family: var(--font-main);
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+a {
+  color: var(--help);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+a:hover {
+  color: var(--help-hover);
+}
+
+
+/* =========================
+   CARD CONTAINER
+   ========================= */
+.page-center {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: scale(2.0);
+  background: var(--primary-hover);
+}
+
+.btn-primary:active {
+  transform: scale(20.0);
+}
+
+.btn-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
 
 #app {
   max-width: 1280px;
@@ -7,29 +119,60 @@
   font-weight: normal;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+/* =========================
+   DOTS LOADER
+   ========================= */
+.dots-loader {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+.dots-loader span {
+  width: 25px;
+  height: 25px;
+  background: var(--text-muted);
+  opacity: 0.25;
+  animation: dotPulse 1.2s infinite ease-in-out;
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
+/* Colores por dot */
+.dots-loader span:nth-child(1) {
+  background: var(--player-one);
+  animation-delay: 0s;
+}
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+.dots-loader span:nth-child(2) {
+  background: var(--player-two);
+  animation-delay: 0.15s;
+}
+
+.dots-loader span:nth-child(3) {
+  background: var(--player-three);
+  animation-delay: 0.3s;
+}
+
+.dots-loader span:nth-child(4) {
+  background: var(--player-four);
+  animation-delay: 0.45s;
+}
+
+@keyframes dotPulse {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  60% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
   }
 }

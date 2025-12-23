@@ -1,5 +1,8 @@
-from fastapi import FastAPI, UploadFile, File, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, UploadFile, File, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+import tempfile
+
 
 from who.whatsapp.chat_reader import WhatsappReader
 from who.websockets.room import RoomManager
@@ -17,23 +20,38 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # frontend Vue (Vite)
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 whatsapp_reader: WhatsappReader | None = None
 room_manager: RoomManager = RoomManager()
 
-@app.post("/api/load_chat", summary="Load WhatsApp chat file")
+
+@app.post("/api/load_chat")
 async def load_chat(file: UploadFile = File(...)):
-    global whatsapp_reader
+    try:
+        content = await file.read()
 
-    # Save uploaded file temporarily
-    content = await file.read()
-    temp_path = f"/tmp/{file.filename}"
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(content)
+            temp_path = tmp.name
 
-    with open(temp_path, "wb") as f:
-        f.write(content)
+        global whatsapp_reader
+        whatsapp_reader = WhatsappReader(temp_path)
 
-    whatsapp_reader = WhatsappReader(temp_path)
+        return {"status": "chat loaded", "filename": file.filename}
 
-    return {"status": "chat loaded", "filename": file.filename}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.get("/api/get_members", summary="Return list of chat members")
 async def get_members() -> List[str]:

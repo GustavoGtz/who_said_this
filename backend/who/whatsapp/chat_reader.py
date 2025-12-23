@@ -1,4 +1,5 @@
 import re
+import string
 from typing import Iterator, Sequence
 from who.models import Message, Filter, HourMinuteTime, DayMonthYearDate
 
@@ -6,10 +7,9 @@ class WhatsappReader:
     def __init__(self, file: str):
         with open(file, encoding="utf-8") as f:
             self.chat = f.readlines()  # -> list[str]
-
+        
         self.members: list[str] = []
         self.messages: list[Message] = []
-
         self.process_chat()
 
     def get_members(self) -> Sequence[str]:
@@ -90,7 +90,6 @@ class WhatsappReader:
         self.merge_multiline_messages()
         self.merge_multisent_messages()
         self.remove_low_quality_messages()
-        
         self.create_messages_data()
     
     """
@@ -118,7 +117,8 @@ class WhatsappReader:
             return True
         
         self.chat = list(filter(msg_filters, self.chat))
-    
+
+
     """
     Merge messages like:
     11/12/2025, 11:05 AM - Foo: This is amazing
@@ -208,7 +208,7 @@ class WhatsappReader:
             if m:
                 msg_text = m.group("text")
 
-                msg_words = clean_text(msg_text)
+                msg_words = clean_text(msg_text, low_quality_words)
 
                 if len(msg_words) > 10:
                     return True
