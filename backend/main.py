@@ -57,8 +57,13 @@ async def load_chat(file: UploadFile = File(...)):
 async def get_members() -> List[str]:
     global whatsapp_reader
     if whatsapp_reader is None:
-        return {"error": "Chat not loaded"}
-    return whatsapp_reader.get_members()
+        raise HTTPException(status_code=400, detail="Chat not loaded")
+    
+    try:
+        members = whatsapp_reader.get_members()
+        return members
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/get_messages_number", summary="Count messages using a filter")
 async def get_messages_number(filter: Filter) -> int:
@@ -75,6 +80,9 @@ async def get_messages(filter: Filter) -> List[Message]:
         return {"error": "Chat not loaded"}
     return list(whatsapp_reader.get_messages(filter))
 
+
+
+# APPI para setupear los settings del la partida.
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):

@@ -83,6 +83,61 @@ a:hover {
 }
 
 /* =========================
+   MEMBERS CARD CONTAINER
+   ========================= */
+
+.members-card {
+  background: var(--card-bg);
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.members-card h1 {
+  color: var(--bg-main);
+}
+
+.members-card button {
+  background-color: var(--bg-main);
+  padding: 0.5rem;
+  margin: 0.3rem;
+  border: None;
+  color: var(--card-bg);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.members-card button:hover {
+  transform: scale(1.1);
+  background-color: var(--primary-hover);  
+}
+
+.members-card button.inactive {
+  color: var(--text-muted);
+  background-color: var(--text-main);
+}
+
+.members-card p {
+  color: var(--text-main);
+  font-size: 0.8rem;
+}
+
+.members-card strong {
+  color: var(--bg-accent);
+}
+
+.hint {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+
+  font-size: 0.8rem;
+  color: #777;
+  max-width: 70%;
+}
+
+/* =========================
    BUTTONS
    ========================= */
 .btn {
