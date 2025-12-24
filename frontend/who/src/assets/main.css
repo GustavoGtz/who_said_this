@@ -63,6 +63,46 @@ a:hover {
   color: var(--help-hover);
 }
 
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-weight: normal;
+}
+
+.big-input {
+  width: 70%;
+  padding: 0.9rem 1rem;
+  border: 2px solid var(--primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--bg-main);
+  background: white;
+}
+
+.big-input:focus {
+  outline: none;
+  color: var(--bg-accent)
+}
+
+.input-row {
+  border: None;
+  display: flex;
+  gap: 0.75rem;
+  background-color: var(--bg-accent);
+  color: var(--text-main);
+}
+
+
+/* =========================
+   TEXT STACk
+   ========================= */
+.text-stack {
+  display: flex;
+  flex-direction: column; /* ← apila hacia abajo */
+  gap: 0.25rem;           /* espacio entre textos */
+}
 
 /* =========================
    CARD CONTAINER
@@ -70,6 +110,7 @@ a:hover {
 .page-center {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -80,6 +121,29 @@ a:hover {
   width: 100%;
   max-width: 420px;
   text-align: center;
+}
+
+/* =========================
+   MEMBERS CARD CONTAINER
+   ========================= */
+.invisible-card {
+  background: none;
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.invisible-card p {
+  color: var(--bg-accent);
+  font-size: 1.5rem;
+}
+
+.invisible-card strong {
+  color: var(--card-bg);
+  font-size: 1.7rem;
 }
 
 /* =========================
@@ -127,7 +191,7 @@ a:hover {
   color: var(--bg-accent);
 }
 
-.hint {
+.members-card hint {
   position: absolute;
   bottom: 0.75rem;
   left: 0.75rem;
@@ -142,12 +206,21 @@ a:hover {
    ========================= */
 .btn {
   display: inline-block;
+  border: None;
   padding: 10px 20px;
   font-family: inherit;
   font-size: 0.95rem;
   cursor: pointer;
 }
 
+.btn-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* =========================
+   BUTTONS PRIMARY
+   ========================= */
 .btn-primary {
   background: var(--primary);
   color: white;
@@ -162,16 +235,23 @@ a:hover {
   transform: scale(20.0);
 }
 
-.btn-disabled {
-  opacity: 0.6;
-  pointer-events: none;
+/* =========================
+   BUTTONS SECONDARY
+   ========================= */
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--bg-accent)
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+.btn-secondary:hover {
+  transform: scale(2.0);
+  background: var(--text-main);
+  color: var(--card-bg)
+}
+
+.btn-secondary:active {
+  transform: scale(20.0);
 }
 
 /* =========================

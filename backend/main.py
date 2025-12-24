@@ -56,6 +56,7 @@ async def load_chat(file: UploadFile = File(...)):
 @app.get("/api/get_members", summary="Return list of chat members")
 async def get_members() -> List[str]:
     global whatsapp_reader
+    
     if whatsapp_reader is None:
         raise HTTPException(status_code=400, detail="Chat not loaded")
     
@@ -65,12 +66,18 @@ async def get_members() -> List[str]:
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/api/get_messages_number", summary="Count messages using a filter")
+@app.post("/api/get_messages_number", summary="Count messages using a filter")
 async def get_messages_number(filter: Filter) -> int:
     global whatsapp_reader
+
     if whatsapp_reader is None:
-        return {"error": "Chat not loaded"}
-    return whatsapp_reader.get_messages_number(filter)
+        raise HTTPException(status_code=400, detail="Chat not loaded")
+    
+    try:
+        n_messages = whatsapp_reader.get_messages_number(filter)
+        return n_messages
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/api/get_messages", summary="Get messages using a filter")

@@ -13,14 +13,13 @@ class WhatsappReader:
         self.process_chat()
 
     def get_members(self) -> Sequence[str]:
-        # TODO: Devolver la lista que contiene los nombres
-        #       de los miembros del Chat.
         return self.members
 
     def get_messages_number(self, f: Filter) -> int:
         # TODO: Calcular el numero de mensajes en self.messages despues
         #       de aplicar los filtros f y devolver el entero.
-        ...
+        print(f)
+        return 1
 
     def get_messages(self, f: Filter) -> Iterator[Message]:
         # TODO: Devolver una Iterador de objetos tipo Message despues
