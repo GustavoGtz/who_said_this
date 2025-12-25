@@ -311,3 +311,140 @@ a:hover {
     transform: scale(0.8);
   }
 }
+
+/* =========================
+   GAME LOOP INTERFACE
+   ========================= */
+.message-interface {
+  position:relative;
+
+  background: var(--card-bg);
+  
+  min-height: 400px;
+  width: 100%;
+  max-width: 420px;
+  margin: 16px auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  font-family: system-ui, sans-serif;
+}
+
+.grey-header {
+  height: 60px;
+  margin-bottom: 20px;
+  background: var(--text-main);
+}
+.grey-footer {
+  position:absolute;
+  align-self: center;
+  border-radius: 10px;
+  bottom: 5%;
+  width: 85%;
+  height: 10%;
+  background: var(--text-muted);
+}
+
+.date-header {
+    align-self: center;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    margin-bottom: 5%;
+}
+
+.scrollable-msg {
+    position: relative;
+
+    max-width: 80%;
+    max-height: 170px;
+    width: 80%;
+    padding: 5px 20px 25px 20px;
+
+    background: var(--bg-accent);
+    color: var(--card-bg);
+
+    border-radius: 0px 14px 14px 14px;
+
+    font-size: 0.95rem;
+    line-height: 1.4;
+
+    overflow:hidden;
+
+    align-self:center;
+    word-wrap: break-word;
+}
+
+.time-footer {
+    position:absolute;
+    bottom: 5px;
+    right: 8px;
+
+    font-size: 0.7rem;
+    color: var(--card-bg);
+}
+
+
+.game-timer {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+
+    background: var(--card-bg);
+    color: var(--bg-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 2.4rem;
+    font-weight: bold;
+
+    margin-bottom: 20px;
+}
+
+.game-answer {
+    width: 100%;
+    max-width: 200px;
+    height: 56px;
+
+    margin: 5px 5px 5px 5px;
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    padding: 16px 16px;
+
+    color: var(--card-bg);
+
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.game-answer:nth-of-type(2) {
+    background: var(--player-one);
+}
+
+.game-answer:nth-of-type(3) {
+    background: var(--player-two);
+}
+
+.game-answer:nth-of-type(4) {
+    background: var(--player-three);
+}
+
+.game-answer:nth-of-type(5) {
+    background: var(--player-four);
+}
+
+.game-answer-icon {
+    color: var(--card-bg);
+
+    display: flex;
+    align-items: center;
+    justify-content: left;
+
+    font-weight: bold;
+    font-size: 1.5rem;
+}
