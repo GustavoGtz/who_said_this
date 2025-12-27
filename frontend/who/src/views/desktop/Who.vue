@@ -1,4 +1,5 @@
 <script setup>
+import router from "@/router";
 import { ref, reactive, watch} from "vue";
 
 const state = ref("home")
@@ -116,6 +117,9 @@ async function precalculateMessages() {
 }
 
 function hostGame() {
+  // Call an API to start the backend service of messages with the
+  // class manager of messages
+  router.push("who/host/room")
   console.log("HOSTEAR GAME!")
 }
 
