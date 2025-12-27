@@ -2,7 +2,7 @@
 import { ref, reactive, watch} from "vue";
 
 const state = ref("home")
-const maxPlayers = ref(4)
+const maxPlayers = ref(7)
 
 const members = ref([])
 const activeMembers = ref(new Set())
@@ -94,8 +94,6 @@ async function precalculateMessages() {
       max_time: timeStringToObject(filters.max_time)  
     }
 
-    console.log(payload)
-
     const response = await fetch("http://localhost:8000/api/get_messages_number",
       {
         method: "POST",
@@ -118,15 +116,13 @@ async function precalculateMessages() {
 }
 
 function hostGame() {
-  // CREATE THE OBJET OF THE PARY CONTROLLER
-  // START THE NEW SCENE WITH WEB SOCKETS
   console.log("HOSTEAR GAME!")
 }
 
-watch(state, (newState) => {
+watch(state, async (newState) => {
   if (newState === "loaded") {
-    getMembers()
-    precalculateMessages(filters)
+    await getMembers()
+    await precalculateMessages(filters)
   }
 })
 
@@ -181,19 +177,8 @@ watch(
       <span></span>
       <span></span>
     </div>
-
   </div>
 
-  <!-- HOST CONFIG SCREEN -->
-  <!-- QUE DEBERIA HACER AQUI?
-   1, Cargar los miembros por medio de una API (le van adeolver una lista de nombres),
-      y generar un tablero interactivo donde se podra pulsar cada uno de los nombrees para desactivarlos
-   2, Debe hnaber una seccion para que se peudai ntroducor el MAX players.
-   3. Debe haber 4 filtros, min date, max date, min hour, max hour.
-   4. Debe haver un texto reractivo ab ajo a la izquierda, cada vez qeu ase pulse ya sea algo de 1 o algo de 
-      3, se debera a llamar uan funcion del backend para precalcular con los datos de 1 y 3 para detemrinra
-    cauntos mensajes hay ahora.
-  5. Finalmnete, debera haver un host Game boton asociado a una funcion del API que se ria como inicialziar con la partida.-->
   <div v-else class="page-center">
     <div class="members-card">
       <h1>Members Pool</h1>

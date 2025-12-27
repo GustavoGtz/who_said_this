@@ -13,23 +13,27 @@ class WhatsappReader:
         self.process_chat()
 
     def get_members(self) -> Sequence[str]:
+        # TODO: TERMINAR ESTE METODO / MEJORARLO?!
         return self.members
 
     def get_messages_number(self, f: Filter) -> int:
-        # TODO: Calcular el numero de mensajes en self.messages despues
-        #       de aplicar los filtros f y devolver el entero.
-        print(f)
-        return 1
-
+        return len(self.get_messages(f))
+            
     def get_messages(self, f: Filter) -> Iterator[Message]:
-        # TODO: Devolver una Iterador de objetos tipo Message despues
-        #       de aplicar los filtros f.
-        #       Importante:
-        #       1) NO MUTAR la lista original self.message, unicamente
-        #          devolver una "copia".
-        #       2) El valor de retorno debe ser un Iterator con elementos
-        #          de tipo Message.
-        ...
+        # TODO: TERMINAR ESTE METODO!
+        
+        messages = [msg for msg in self.messages if msg.author in f.members]
+        
+        if f.min_time is not None:
+            pass
+        if f.max_time is not None:
+            pass
+        if f.min_date is not None:
+            pass
+        if f.max_date is not None:
+            pass
+        
+        return messages
     
     def create_messages_data(self):
         msg_patterns = [r'(?P<date>[\d]{1,2}\/[\d]{1,2}\/[\d]{1,2})'
