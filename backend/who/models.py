@@ -22,3 +22,8 @@ class Filter(BaseModel):
     min_date : DayMonthYearDate | None
     max_date : DayMonthYearDate | None
     
+class RoomInit(BaseModel):
+    max_players: int
+    filters : Filter | None
+    
+    

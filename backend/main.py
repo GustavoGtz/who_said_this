@@ -3,10 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import tempfile
 
-
 from who.whatsapp.chat_reader import WhatsappReader
+from who.whatsapp.messages_manager import WhatsappMessagesManager
 from who.websockets.room import RoomManager
-from who.models import Filter, Message
+from who.models import Filter, Message, RoomInit
+
+from pydantic import BaseModel
+
 
 """
 How to open the endpoints:
@@ -32,6 +35,7 @@ app.add_middleware(
 
 
 whatsapp_reader: WhatsappReader | None = None
+whatsapp_messages: WhatsappMessagesManager | None = None
 room_manager: RoomManager = RoomManager()
 
 
@@ -65,6 +69,19 @@ async def get_members() -> List[str]:
         return members
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.get("/api/get_max_players", summary="Return the number of max players of the game")
+async def get_members() -> int:
+    global whatsapp_messages
+    
+    if whatsapp_messages is None:
+        raise HTTPException(status_code=400, detail="Game not init")
+    
+    try:
+        max_players = whatsapp_messages.get_max_players()
+        return max_players
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/get_messages_number", summary="Count messages using a filter")
 async def get_messages_number(filter: Filter) -> int:
@@ -79,14 +96,18 @@ async def get_messages_number(filter: Filter) -> int:
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
-@app.get("/api/get_messages", summary="Get messages using a filter")
-async def get_messages(filter: Filter) -> List[Message]:
+@app.post("/api/init_room", summary="Init the room/messages controller")
+async def init_room(ri : RoomInit) -> None:
     global whatsapp_reader
+    global whatsapp_messages
     if whatsapp_reader is None:
-        return {"error": "Chat not loaded"}
-    return list(whatsapp_reader.get_messages(filter))
-
+        raise HTTPException(status_code=400, detail="Chat not loaded")
+    
+    try:
+        messages = whatsapp_reader.get_messages(ri.filters)
+        whatsapp_messages = WhatsappMessagesManager(messages, ri.max_players)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # APPI para setupear los settings del la partida.
@@ -104,17 +125,20 @@ async def websocket_endpoint(ws: WebSocket):
             if msg_type == "host":
                 await room_manager.create_room(
                     code=msg["code"],
+                    max_players= whatsapp_messages.get_max_players(),
                     host=ws,
                 )
             elif msg_type == "join":
-                await room_manager.join_room(
+                ok = await room_manager.join_room(
                     code=msg["code"],
                     name=msg["name"],
                     client=ws
                 )
-        
+                if not ok:
+                    return
     except WebSocketDisconnect:
-        room_manager.remove_connection(ws)
+        print("LOOL")
+        await room_manager.remove_connection(ws)
 
 
     

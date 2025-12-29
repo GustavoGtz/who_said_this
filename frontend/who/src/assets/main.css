@@ -70,6 +70,14 @@ a:hover {
   font-weight: normal;
 }
 
+.big-text {
+  font-family: var(--font-main);
+  font-weight: 500;
+  margin: 1rem;
+  color: var(--card-bg);
+  font-size: 2rem;
+}
+
 .big-input {
   width: 70%;
   padding: 0.9rem 1rem;
@@ -101,6 +109,11 @@ a:hover {
   font-size: 0.5rem;
   color: var(--bg-accent);
   max-width: 70%;
+}
+
+.sub-options {
+  font-size: 0.5rem;
+  padding-left: 2rem;
 }
 
 /* =========================
@@ -469,4 +482,44 @@ a:hover {
 
     font-weight: bold;
     font-size: 1.5rem;
+}
+
+
+/* =========================
+   MOBILE
+   ========================= */
+  
+.page-mobile {
+  display: flex;
+  min-height: 50vh;
+  flex-direction:column;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-main);
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.page-mobile h1 {
+  font-family: var(--font-main);
+  justify-content: center;
+  font-weight: 1000;
+  margin: 1rem;
+  color: var(--card-bg);
+  font-size: 2rem;
+}
+
+.page-mobile input {
+  border: None;
+  margin: 10px;
+  font-size: 16px;
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  padding: 10px 20px 10px 20px;
+  font-weight: 1000;
+}
+
+.page-mobile input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
 }

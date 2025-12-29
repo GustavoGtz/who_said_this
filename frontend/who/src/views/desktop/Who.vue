@@ -3,7 +3,7 @@ import router from "@/router";
 import { ref, reactive, watch} from "vue";
 
 const state = ref("home")
-const maxPlayers = ref(7)
+const maxPlayers = ref()
 
 const members = ref([])
 const activeMembers = ref(new Set())
@@ -116,11 +116,40 @@ async function precalculateMessages() {
   }
 }
 
-function hostGame() {
-  // Call an API to start the backend service of messages with the
-  // class manager of messages
-  router.push("who/host/room")
-  console.log("HOSTEAR GAME!")
+async function hostGame() {
+  try {
+    const payload = {
+      max_players: maxPlayers.value,
+      filters: {
+        members: [...activeMembers.value],
+        min_date: dateStringToObject(filters.min_date),
+        max_date: dateStringToObject(filters.max_date),
+        min_time: timeStringToObject(filters.min_time),
+        max_time: timeStringToObject(filters.max_time),
+      }
+    };
+
+    const response = await fetch("http://localhost:8000/api/init_room", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+
+    if (!response.ok) {
+      throw new Error("Failed to host the game")
+    }
+
+    const data = await response.json()
+
+    console.log("HOSTEAR GAME!")
+    router.push("who/host/room")
+
+  } catch (error) {
+    alert(error.message)
+  }
 }
 
 watch(state, async (newState) => {

@@ -36,13 +36,15 @@ Los TODO exactos se encuentran abajo.
 
 class WhatsappMessagesManager:
     
-    def __init__(self, messages: Sequence[Message]):
-        """
-        TODO: Recibe una lista de Message e inicializa esta clase.
-        Debe almacenar internamente la lista original y cualquier estructura
-        adicional necesaria para la administración de mensajes.
-        """
-        ...
+    def __init__(self, messages: Sequence[Message], max_players : int):
+        self.messages = messages
+        self.max_players = max_players
+        self.secs_per_round = 100 # default
+        self.message_selection_method = "random" # default
+            
+    def get_max_players(self):
+        return self.max_players
+        
 
     def get_samples(self, sample_size: int, sample_count: int) -> Sequence[Sequence[Message]]:
         """
