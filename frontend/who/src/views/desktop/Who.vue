@@ -144,7 +144,6 @@ async function hostGame() {
 
     const data = await response.json()
 
-    console.log("HOSTEAR GAME!")
     router.push("who/host/room")
 
   } catch (error) {

@@ -6,7 +6,8 @@ class RoomManager:
     def __init__(self):
         self.rooms: Dict[str, dict] = {}
 
-    async def broadcast(self, room: dict, data: dict, exclude: WebSocket = None):
+    async def broadcast(self, code: str, data: dict, exclude: WebSocket = None):
+        room = self.rooms[code]
         targets = [room["host"]] + [c["ws"] for c in room["clients"]]
 
         for ws in targets:
@@ -65,7 +66,7 @@ class RoomManager:
             "ws": client
         })
 
-        await self.broadcast(room, {
+        await self.broadcast(code, {
             "type": "user_joined",
             "players": len(room["clients"]),
             "name": name
@@ -77,7 +78,7 @@ class RoomManager:
         for code, room in list(self.rooms.items()):
 
             if room["host"] == ws:
-                await self.broadcast(room, {
+                await self.broadcast(code, {
                     "type": "room_closed"
                 })
                 del self.rooms[code]
@@ -87,7 +88,7 @@ class RoomManager:
                 if client["ws"] == ws:
                     room["clients"].remove(client)
 
-                    await self.broadcast(room, {
+                    await self.broadcast(code, {
                         "type": "user_left",
                         "name": client["name"]
                     })

@@ -285,6 +285,12 @@ a:hover {
   color: var(--card-bg)
 }
 
+.btn-secondary:disabled {
+  pointer-events: none;
+  background-color: var(--text-main);
+  color: var(--text-muted)
+}
+
 .btn-secondary:active {
   transform: scale(20.0);
 }
@@ -502,11 +508,13 @@ a:hover {
 
 .page-mobile h1 {
   font-family: var(--font-main);
+  text-align: center;
   justify-content: center;
   font-weight: 1000;
   margin: 1rem;
   color: var(--card-bg);
   font-size: 2rem;
+  padding-bottom: 20px;
 }
 
 .page-mobile input {
@@ -522,4 +530,20 @@ a:hover {
 .page-mobile input::placeholder {
   color: var(--text-muted);
   font-weight: 500;
+}
+
+.page-mobile button {
+  background-color: var(--card-bg);
+  color: var(--bg-main);
+  display: inline-block;
+  border: None;
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.page-mobile button:active {
+  background-color: var(--bg-accent);
+  transform: scale(5.0);
 }

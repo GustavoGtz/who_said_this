@@ -1,24 +1,61 @@
 <script setup>
-import { ref, onMounted} from "vue";
+import router from "@/router";
+import { ref, onMounted, computed} from "vue";
 import { connect } from "@/services/websocket";
 
+let socket;
 const roomCode = ref("PAPU")
 const players = ref([])
 const maxPlayers = ref(0)
+const messageCount = ref()
+
+
+const messageSelection = ref("random")
+const rounds = ref(30)
+const secondsPerRound = ref(100)
+const samplesPerPlayer = ref(10)
+const choosesPerPlayer = ref(5)
+
+const totalMessages = computed(() => {
+    return messageSelection.value === 'random'
+    ? rounds.value
+    : players.value.length * choosesPerPlayer.value
+})
+
+const hasPlayers = computed(() => players.value.length > 0)
+
+const randomModeValid = computed(() => {
+  return (
+    hasPlayers.value &&
+    rounds.value > 0 &&
+    rounds.value <= messageCount.value
+  )
+})
+
+const poolModeValid = computed(() => {
+  return (
+    hasPlayers.value &&
+    choosesPerPlayer.value > 0 &&
+    players.value.length * choosesPerPlayer.value <= messageCount.value
+  )
+})
+
+const canHostGame = computed(() => {
+  return messageSelection.value === 'random'
+    ? randomModeValid.value
+    : poolModeValid.value
+})
+
 
 onMounted(() => {
+    getRoomMessagesNumber();
     getMaxPlayers();
     hostRoom();
 });
 
-// PLACEHOLDERS
-const messageSelection = ref("random")
-const rounds = ref(30)
-const messageCount = ref(3000)
-const secondsPerRound = ref(100)
-
 function hostRoom() {
-    const socket = connect((msg) => {
+    socket = connect((msg) => {
+
         if (msg.type === "user_joined") {
             players.value.push(msg.name);
         }
@@ -27,6 +64,10 @@ function hostRoom() {
             players.value = players.value.filter(
                 (player) => player !== msg.name
             );
+        }
+
+        if (msg.type === "game_started"){
+            router.push("game")
         }
     });
 
@@ -37,6 +78,53 @@ function hostRoom() {
         }));
     };
 }
+
+async function hostGame() {
+    if (!canHostGame.value) {
+        alert("Invalid game configuration")
+        return
+    }
+
+    let payload
+
+    if (messageSelection.value === 'random') {
+        payload = {
+            number : rounds.value
+        }
+    } else {
+    payload = {
+        players: players.value.length,
+        choosesPerPlayer: choosesPerPlayer.value
+        }
+    }
+
+    try {
+        const response = await fetch(
+        "http://localhost:8000/api/set_random_messages",
+        {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        }
+        )
+
+        if (!response.ok) {
+            throw new Error("Failed to host the game")
+        }
+
+        await response.json()
+
+        socket.send(JSON.stringify({
+            type: "start_game",
+            code: roomCode.value
+        }))
+    } catch (error) {
+        alert(error.message)
+    }
+}
+
 
 async function getMaxPlayers() {
     try {
@@ -51,6 +139,24 @@ async function getMaxPlayers() {
     
     const data = await response.json()
     maxPlayers.value = data
+    } catch (error) {
+        alert(error.message)
+    } 
+}
+
+async function getRoomMessagesNumber() {
+    try {
+        const response = await fetch("http://localhost:8000/api/get_room_messages_number",
+        {
+            method: "GET"
+        }
+    )
+    if (!response.ok) {
+        throw new Error("Failed to get the messages number")
+    }
+    
+    const data = await response.json()
+    messageCount.value = data
     } catch (error) {
         alert(error.message)
     } 
@@ -123,11 +229,12 @@ async function getMaxPlayers() {
         <div class="text-stack">
             <button
                 class="btn btn-secondary"
+                :disabled="!canHostGame"
                 @click="hostGame()">
                 START THE GAME
             </button>
             <div class="mini-hint">
-                You will be playing with {{ rounds }} messages from over a {{ messageCount }} messages
+                You will be playing with {{ totalMessages }} messages from over {{ messageCount }} messages
             </div>
         </div>
     </div>

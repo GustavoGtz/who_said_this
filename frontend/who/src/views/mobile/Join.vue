@@ -1,4 +1,5 @@
 <script setup>
+import router from "@/router";
 import { ref } from "vue";
 import { connect } from "@/services/websocket";
 
@@ -18,6 +19,10 @@ function joinRoom() {
     if (msg.type === "user_joined") {
       state.value = "loading";
     }
+
+    if (msg.type === "game_started"){
+            router.push("player/game")
+        }
   });
 
   socket.onopen = () => {
@@ -32,8 +37,6 @@ function joinRoom() {
     alert("No se pudo conectar al servidor");
   };
 }
-
-
 </script>
 
 <template>

@@ -44,7 +44,12 @@ class WhatsappMessagesManager:
             
     def get_max_players(self):
         return self.max_players
-        
+
+    def get_messages_number(self):
+        return len(self.messages)
+    
+    def get_random(self, samples : int) -> Sequence[Message]:
+        ...    
 
     def get_samples(self, sample_size: int, sample_count: int) -> Sequence[Sequence[Message]]:
         """

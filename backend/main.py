@@ -6,7 +6,7 @@ import tempfile
 from who.whatsapp.chat_reader import WhatsappReader
 from who.whatsapp.messages_manager import WhatsappMessagesManager
 from who.websockets.room import RoomManager
-from who.models import Filter, Message, RoomInit
+from who.models import Filter, Message, RoomInit, Integer
 
 from pydantic import BaseModel
 
@@ -108,7 +108,31 @@ async def init_room(ri : RoomInit) -> None:
         whatsapp_messages = WhatsappMessagesManager(messages, ri.max_players)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.get("/api/get_room_messages_number", summary="Return the number of messages in the party")
+async def get_room_messages_number() -> int:
+    global whatsapp_messages
+    
+    if whatsapp_messages is None:
+        raise HTTPException(status_code=400, detail="Game not init")
+    
+    try:
+        messages_number = whatsapp_messages.get_messages_number()
+        return messages_number
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
+@app.post("/api/set_random_messages", summary="Set the messages into randoms")
+async def set_random_messages(n : Integer) -> None:
+    global whatsapp_messages
+    if whatsapp_messages is None:
+        raise HTTPException(status_code=400, detail="Game not init")
+    
+    try:
+        samples = whatsapp_messages.get_random(n.number)
+        whatsapp_messages.set_messages(samples)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))    
 
 # APPI para setupear los settings del la partida.
 
@@ -136,8 +160,14 @@ async def websocket_endpoint(ws: WebSocket):
                 )
                 if not ok:
                     return
+            elif msg_type == "start_game":
+                await room_manager.broadcast(
+                    code=msg["code"],
+                    data={
+                        "type" : "game_started"
+                    }
+                )
     except WebSocketDisconnect:
-        print("LOOL")
         await room_manager.remove_connection(ws)
 
 
