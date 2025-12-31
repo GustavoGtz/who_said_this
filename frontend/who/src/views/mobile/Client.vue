@@ -1,35 +1,42 @@
 <script setup>
 import router from "@/router";
 import { ref } from "vue";
-import { connect } from "@/services/websocket";
+import { connect, closeSocket} from "@/services/websocket";
 
-const state = ref("home")
+let socket
+const loading = ref(false)
 
 const username = ref("")
-const roomCode = ref("")
 
 function joinRoom() {
-  const socket = connect((msg) => {
+  socket = connect((msg) => {
+    // cases
+    if (msg.type === "user_joined") {
+      loading.value = true;
+    }
+    
+    if (msg.type === "room_closed") {
+      closeSocket();
+      loading.value = false;
+      alert(msg.message);
+    }
+    
+    // TODO: Other case for pool_selection
+    
+    if (msg.type === "game_started"){
+      router.push("play/pool")
+    }
+
     if (msg.type === "error") {
       alert(msg.message)
-      socket.close();
-      return;
+      closeSocket();
     }
-
-    if (msg.type === "user_joined") {
-      state.value = "loading";
-    }
-
-    if (msg.type === "game_started"){
-            router.push("player/game")
-        }
   });
 
   socket.onopen = () => {
     socket.send(JSON.stringify({
       type: "join",
-      code: roomCode.value,
-      name: username.value
+      username: username.value
     }));
   };
 
@@ -40,9 +47,8 @@ function joinRoom() {
 </script>
 
 <template>
-    <div div v-if="state === 'home'" class="page-mobile">
+    <div div v-if=!loading class="page-mobile">
       <h1>WHO SAID THIS?</h1>
-        <input v-model="roomCode" placeholder="CODE" />
         <input v-model="username" placeholder="YOUR NAME" />
         <button @click="joinRoom">Join</button>
     </div>

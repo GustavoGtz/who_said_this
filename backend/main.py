@@ -1,15 +1,17 @@
+import tempfile
+from typing import List
+
 from fastapi import FastAPI, UploadFile, File, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
-import tempfile
 
 from who.whatsapp.chat_reader import WhatsappReader
-from who.whatsapp.messages_manager import WhatsappMessagesManager
-from who.websockets.room import RoomManager
-from who.models import Filter, Message, RoomInit, Integer
-
-from pydantic import BaseModel
-
+from who.room.room import RoomManager
+from who.models import (
+    Filter, 
+    RoomInitPayload,
+    RoomRandomizeMessagesPayload,
+    RoomSetSecondsPerRound
+)
 
 """
 How to open the endpoints:
@@ -34,13 +36,17 @@ app.add_middleware(
 )
 
 
-whatsapp_reader: WhatsappReader | None = None
-whatsapp_messages: WhatsappMessagesManager | None = None
-room_manager: RoomManager = RoomManager()
+READER: WhatsappReader | None = None
+ROOM: RoomManager | None = None
 
+#whatsapp_messages: WhatsappMessagesManager | None = None
+#room_manager: RoomManager = RoomManager()
 
-@app.post("/api/load_chat")
-async def load_chat(file: UploadFile = File(...)):
+# ########################################### #
+#          API's for the READER               #
+# ########################################### # 
+@app.post("/api/reader/upload_chat", summary="Uploads the chat")
+async def reader_upload_chat(file: UploadFile = File(...)):
     try:
         content = await file.read()
 
@@ -48,127 +54,164 @@ async def load_chat(file: UploadFile = File(...)):
             tmp.write(content)
             temp_path = tmp.name
 
-        global whatsapp_reader
-        whatsapp_reader = WhatsappReader(temp_path)
+        global READER
+        READER = WhatsappReader(temp_path)
 
         return {"status": "chat loaded", "filename": file.filename}
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
-@app.get("/api/get_members", summary="Return list of chat members")
-async def get_members() -> List[str]:
-    global whatsapp_reader
-    
-    if whatsapp_reader is None:
-        raise HTTPException(status_code=400, detail="Chat not loaded")
+@app.get("/api/reader/get_members", summary="Return list of chat members")
+async def reader_get_members() -> List[str]:
+    global READER
+    if READER is None: raise HTTPException(status_code=400, detail="Chat is not loaded")
     
     try:
-        members = whatsapp_reader.get_members()
+        members = READER.get_members()
         return members
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@app.get("/api/get_max_players", summary="Return the number of max players of the game")
-async def get_members() -> int:
-    global whatsapp_messages
-    
-    if whatsapp_messages is None:
-        raise HTTPException(status_code=400, detail="Game not init")
+@app.post("/api/reader/get_messages_count", summary="Return the count of messages in the chat")
+async def get_messages_count(filter: Filter) -> int:
+    global READER
+    if READER is None:
+        raise HTTPException(status_code=400, detail="Chat is not loaded")
     
     try:
-        max_players = whatsapp_messages.get_max_players()
+        messages_count = READER.get_messages_count(filter)
+        return messages_count
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# ########################################### #
+#           API's for the ROOM                #
+# ########################################### #
+@app.post("/api/room/init", summary="Inits the room manager")
+async def room_init(payload : RoomInitPayload) -> None:
+    global READER
+    global ROOM
+    if READER is None:
+        raise HTTPException(status_code=400, detail="Chat is not loaded")
+    
+    try:
+        messages = READER.get_messages(payload.filter)
+        ROOM = RoomManager(messages = messages, max_players = payload.max_players)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/room/get_max_players", summary="Return the number of max players of the room")
+async def room_get_max_players() -> int:
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
+    
+    try:
+        max_players = ROOM.get_max_players()
         return max_players
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/api/get_messages_number", summary="Count messages using a filter")
-async def get_messages_number(filter: Filter) -> int:
-    global whatsapp_reader
-
-    if whatsapp_reader is None:
-        raise HTTPException(status_code=400, detail="Chat not loaded")
+    
+@app.get("/api/room/get_messages_count", summary="Return the count of messages in the room")
+async def room_get_messages_count() -> int:
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
     
     try:
-        n_messages = whatsapp_reader.get_messages_number(filter)
-        return n_messages
+        messages_count = ROOM.get_messages_count()
+        return messages_count
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/api/init_room", summary="Init the room/messages controller")
-async def init_room(ri : RoomInit) -> None:
-    global whatsapp_reader
-    global whatsapp_messages
-    if whatsapp_reader is None:
-        raise HTTPException(status_code=400, detail="Chat not loaded")
+@app.post("/api/room/randomize_messages", summary="Set the messages into randoms")
+async def room_randomize_messages(payload : RoomRandomizeMessagesPayload) -> None:
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
     
     try:
-        messages = whatsapp_reader.get_messages(ri.filters)
-        whatsapp_messages = WhatsappMessagesManager(messages, ri.max_players)
+        samples = ROOM.get_random_messages(number_of_messages = payload.number_of_messages)
+        ROOM.set_messages(samples)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@app.get("/api/get_room_messages_number", summary="Return the number of messages in the party")
-async def get_room_messages_number() -> int:
-    global whatsapp_messages
-    
-    if whatsapp_messages is None:
-        raise HTTPException(status_code=400, detail="Game not init")
+@app.post("/api/room/set_seconds_per_round", summary="Set the messages into randoms")
+async def set_seconds_per_round(payload : RoomSetSecondsPerRound) -> None:
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
     
     try:
-        messages_number = whatsapp_messages.get_messages_number()
-        return messages_number
+        ROOM.set_seconds_per_round(payload.seconds)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/api/set_random_messages", summary="Set the messages into randoms")
-async def set_random_messages(n : Integer) -> None:
-    global whatsapp_messages
-    if whatsapp_messages is None:
-        raise HTTPException(status_code=400, detail="Game not init")
     
-    try:
-        samples = whatsapp_messages.get_random(n.number)
-        whatsapp_messages.set_messages(samples)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))    
-
-# APPI para setupear los settings del la partida.
-
+# ########################################### #
+#         WEBSOCKETS for the ROOM             #
+# ########################################### #
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
+    
     await ws.accept()
     
     try:
         while True:
             msg = await ws.receive_json()
-            
             msg_type = msg.get("type")
             
+            # ########################################### #
+            #           WEBSOCKETS OPERATIONS             #
+            # ########################################### #
+            
+            # > Host a new party                          #
             if msg_type == "host":
-                await room_manager.create_room(
-                    code=msg["code"],
-                    max_players= whatsapp_messages.get_max_players(),
+                await ROOM.host_party(
                     host=ws,
                 )
-            elif msg_type == "join":
-                ok = await room_manager.join_room(
-                    code=msg["code"],
-                    name=msg["name"],
+            
+            # > Join to a party                          #
+            if msg_type == "join":
+                answer = await ROOM.join_party(
+                    username=msg["username"],
                     client=ws
                 )
-                if not ok:
+                if not answer: # Error!
                     return
-            elif msg_type == "start_game":
-                await room_manager.broadcast(
-                    code=msg["code"],
-                    data={
-                        "type" : "game_started"
-                    }
-                )
+            
+            # TODO: WS calls to the pool selection       #
+                
+            # > Start the game                           #  
+            if msg_type == "start_game":
+                answer = await ROOM.start_game()
+                
+                if not answer: # Error!
+                    return
+            
+            # > Start the curtain                        #  
+            if msg_type == "curtain_start":
+                ...
+            
+            # > End the curtain                          #  
+            if msg_type == "curtain_end":
+                ...
+            
+            # > Start the question                       #  
+            if msg_type == "question_start":
+                ...
+            
+            # > End the question                         #  
+            if msg_type == "question_end":
+                ...
+            
+            # > Results of the question                  #  
+            if msg_type == "question_result":
+                ...
+            
     except WebSocketDisconnect:
-        await room_manager.remove_connection(ws)
-
-
-    
+        await ROOM.remove_connection(ws)

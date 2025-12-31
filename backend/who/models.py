@@ -1,5 +1,9 @@
 from pydantic import BaseModel
 
+# ########################################### #
+#              USEFUL MODELS                  #
+# ########################################### #
+
 class DayMonthYearDate(BaseModel):
     day   : int
     month : int
@@ -21,28 +25,23 @@ class Filter(BaseModel):
     max_time : HourMinuteTime | None
     min_date : DayMonthYearDate | None
     max_date : DayMonthYearDate | None
-    
-class RoomInit(BaseModel):
+
+
+# ########################################### #
+#             PAYLOAD MODELS                  #
+# ########################################### #
+
+class RoomInitPayload(BaseModel):
+    filter: Filter
     max_players: int
-    filters : Filter | None
+
+class RoomRandomizeMessagesPayload(BaseModel):
+    number_of_messages : int
+
+class RoomSetSecondsPerRound(BaseModel):
+    seconds : int
     
 
-
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# //////////////// secret , shhh.... /////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-# ////////////////////////////////////////////////////////
-
-class Integer(BaseModel):
-    number : int
 
     
     

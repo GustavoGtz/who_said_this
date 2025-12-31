@@ -3,13 +3,28 @@ const WS_URL =
   location.hostname +
   ":8000/ws";
 
-export function connect(onMessage) {
-  const socket = new WebSocket(WS_URL)
+let socket = null;
 
-  socket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (onMessage) onMessage(data);
-  };
+export function connect(onMessage) {
+  if (!socket) {
+    socket = new WebSocket(WS_URL);
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (onMessage) onMessage(data);
+    };
+  }
 
   return socket;
+}
+
+export function getSocket() {
+  return socket;
+}
+
+export function closeSocket() {
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
 }

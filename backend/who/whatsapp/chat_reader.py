@@ -16,7 +16,7 @@ class WhatsappReader:
         # TODO: TERMINAR ESTE METODO / MEJORARLO?!
         return self.members
 
-    def get_messages_number(self, f: Filter) -> int:
+    def get_messages_count(self, f: Filter) -> int:
         return len(self.get_messages(f))
             
     def get_messages(self, f: Filter) -> Iterator[Message]:
