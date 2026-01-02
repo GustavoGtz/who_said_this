@@ -1,4 +1,5 @@
 import tempfile
+import asyncio
 from typing import List
 
 from fastapi import FastAPI, UploadFile, File, WebSocket, WebSocketDisconnect, HTTPException
@@ -7,7 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from who.whatsapp.chat_reader import WhatsappReader
 from who.room.room import RoomManager
 from who.models import (
-    Filter, 
+    Filter,
+    RoundMessage,
     RoomInitPayload,
     RoomRandomizeMessagesPayload,
     RoomSetSecondsPerRound
@@ -149,6 +151,32 @@ async def set_seconds_per_round(payload : RoomSetSecondsPerRound) -> None:
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
+@app.get("/api/room/get_seconds_per_round", summary="Return the seconds per round in the room")
+async def room_get_seconds_per_round() -> int:
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
+    
+    try:
+        seconds = ROOM.get_seconds_per_round()
+        return seconds
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/room/get_round_message", summary="Return the message of the round (1 message and 4 answers)") 
+async def room_get_round_message() -> RoundMessage:
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
+    
+    try:
+        round_message = ROOM.get_round_message()
+        return round_message
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+    
 # ########################################### #
 #         WEBSOCKETS for the ROOM             #
 # ########################################### #
@@ -178,7 +206,7 @@ async def websocket_endpoint(ws: WebSocket):
             # > Join to a party                          #
             if msg_type == "join":
                 answer = await ROOM.join_party(
-                    username=msg["username"],
+                    username= msg["username"],
                     client=ws
                 )
                 if not answer: # Error!
@@ -194,12 +222,12 @@ async def websocket_endpoint(ws: WebSocket):
                     return
             
             # > Start the curtain                        #  
-            if msg_type == "curtain_start":
-                ...
+            if msg_type == "start_curtain":
+                asyncio.create_task(ROOM.start_curtain())
             
-            # > End the curtain                          #  
-            if msg_type == "curtain_end":
-                ...
+            # > Finish the round                         #  
+            if msg_type == "finish_round":
+                asyncio.create_task(ROOM.finish_round())
             
             # > Start the question                       #  
             if msg_type == "question_start":

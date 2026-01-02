@@ -1,40 +1,171 @@
 <script setup>
-import { ref, reactive} from "vue";
+    import { connect } from "@/services/websocket";
+    import { ref, reactive, onMounted} from "vue";
 
-const state = ref("loop")
+    let socket;
 
-// PLACEHOLDER VARIABLES
-const answerTime = ref(60)
-const message = reactive({
-    text : "Este es un texto de prueba y se puede ver como se escribe un poco mas ya si jaja",
-    date : "10-8-2025",
-    time : "10:20"
-})
-const answers = reactive({
-    good : "Fermin",
-    bad : ["Miguel", "Gustavo", "Mirka"]
-})
+    const answer = ref("")
+    const answerRevealed = ref(false)
 
-function startRound() {
-    // Put a Cortain for a few sxeconds
-    // Generate a new question with the objetct in the backend
-    //Put a timer with the question and receive the answers.
-}
+    const curtain = ref(true)
+    const secondsPerRound = ref()
+    const roundTime = ref()
+    const timer = ref(null)
 
+    const roundMessage = reactive({
+        text: "",
+        date: "",    // "11/12/2025"
+        time: "",    // "12:50 PM"
+        options: []
+    });
+
+    async function startCurtain() {
+        if (!socket) return
+        socket.send(JSON.stringify({
+            type : "start_curtain"
+        }))
+    }
+
+    function formatDate({ day, month, year }) {
+        if (!day || !month || !year) return "";
+
+        return `${month}/${day}/${year + 2000}`;
+        }
+
+    function formatTime({ hour, minute }) {
+        if (hour == null || minute == null) return "";
+
+        const isPM = hour >= 12;
+        const displayHour = hour % 12 || 12;
+        const paddedMinute = minute.toString().padStart(2, "0");
+
+        return `${displayHour}:${paddedMinute} ${isPM ? "PM" : "AM"}`;
+     }
+
+    function normalizeRoundMessage(data) {
+        return {
+            text: data.text,
+            date: formatDate(data.date),
+            time: formatTime(data.time),
+            options: data.options ?? []
+        };
+    }
+
+    async function startRound() {
+        answer.value = ""
+        answerRevealed.value = false
+        roundTime.value = secondsPerRound.value
+
+        try {
+            const response = await fetch("http://localhost:8000/api/room/get_round_message",
+                { 
+                    method: "GET" 
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to get the message round");
+            }
+
+            const data = await response.json();
+            const normalized = normalizeRoundMessage(data);
+
+            roundMessage.text = normalized.text;
+            roundMessage.date = normalized.date;
+            roundMessage.time = normalized.time;
+            roundMessage.options = normalized.options;
+
+        } catch (error) {
+            alert(error.message);
+            
+        }
+
+        curtain.value = false;
+        startCountdown();
+    }
+
+    async function finishRound() {
+        answerRevealed.value = true
+        // Un peque;o lapso de tiempo aqui . . .
+        startCurtain();
+    }
+    
+    function startCountdown() {
+        clearInterval(timer.value);
+
+        timer.value = setInterval(() => {
+            roundTime.value--;
+
+            if (roundTime.value <= 0){
+                clearInterval(timer.value)
+                timer.value = null;
+                socket.send(JSON.stringify({
+                    type : "finish_round"
+                }))
+            }
+        }, 1000)
+
+    }
+
+    async function getSecondsPerRound() {
+        try {
+            const response = await fetch("http://localhost:8000/api/room/get_seconds_per_round",
+                {
+                    method : "GET"
+                }
+            )
+            if (!response.ok) { throw new Error("Failed to get the secodns per round") }
+
+            const data = await response.json() 
+            secondsPerRound.value = data
+            roundTime.value = data
+
+        } catch (error) {
+            alert(error.message)
+        }
+    }
+
+    async function setWebSocket() {
+        socket = connect((msg) => {
+            if (msg.type === "curtain_started") {
+                curtain.value = true
+            }
+
+            if (msg.type === "round_started") {
+                startRound();
+            }
+
+            if (msg.type === "round_finished") {
+                answer.value = msg.answer
+                finishRound();
+            }
+
+            if (msg.type === "error") {
+                alert(msg.message)
+            }
+        });
+    }
+
+    onMounted(async () => {
+        // Starting the game loop
+        await setWebSocket();
+        await getSecondsPerRound();
+        await startCurtain();
+    });
 </script>
 
 <template>
-    <div v-if="state === 'loop'" class="page-center">
+    <div v-if=!curtain class="page-center">
         <div class="invisible-card">
             <div class="message-interface">
                 <div class="grey-header"></div>
                 <div class="date-header">
-                    {{ message.date }}
+                    {{ roundMessage.date }}
                 </div>
                 <div class="scrollable-msg">
-                    {{ message.text }}
+                    {{ roundMessage.text }}
                     <div class="time-footer">
-                        {{ message.time }}
+                        {{ roundMessage.time }}
                     </div>
                 </div>
                 <div class="grey-footer"></div>
@@ -42,24 +173,28 @@ function startRound() {
 
             <div class="text-stacked">
                 <div class="game-timer">
-                    Counter
-                </div>         
-                <div class="game-answer">
-                    <div class="game-answer-icon"> A </div> Fermin
+                    {{ roundTime }}
                 </div>
-
-                <div class="game-answer">
-                    <div class="game-answer-icon"> B </div> Miguel
+            <div class="game-answer"
+                v-for="(option, index) in roundMessage.options"
+                :key="index"
+                :class="{
+                    correct:   answerRevealed && option === roundMessage.answer,
+                    incorrect: answerRevealed && option !== roundMessage.answer}">
+                <div class="game-answer-icon">
+                    {{ String.fromCharCode(65 + index) }}
                 </div>
-
-                <div class="game-answer">
-                    <div class="game-answer-icon"> C </div> Gustavo
-                </div>
-
-                <div class="game-answer">
-                    <div class="game-answer-icon"> D </div> Mirka
-                </div>
+                    {{ option }}
+                </div>     
             </div>
+        </div>
+    </div>
+    <div v-else class="page-center">
+        <div class="dots-loader">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
         </div>
     </div>
 </template>

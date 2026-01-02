@@ -1,17 +1,23 @@
 from fastapi import WebSocket
+import random
 from typing import Sequence
-from who.models import Message
+import asyncio
+from who.models import Message, RoundMessage
 
 
 class RoomManager:
     def __init__(self, messages : Sequence[Message], max_players : int):
         self.messages = messages
+        self.members = self.get_members()
         self.max_players = max_players
         self.seconds_per_round = 100
+        self.curtain_duration = 5 # seconds
         
         self.host = None
         self.clients = []
-    
+        
+        self.round_message = None
+        
     # ########################################### #
     #           GAME related functions            #
     # ########################################### #
@@ -20,6 +26,13 @@ class RoomManager:
         
     def set_seconds_per_round(self, secs : int) -> None:
         self.seconds_per_round = secs
+    
+    def get_members(self) -> Sequence[str]:
+        members = []
+        for message in self.messages:
+            member = message.author
+            if member not in members : members.append(member)
+        return members
         
     def get_messages_count(self) -> int:
         return len(self.messages)
@@ -27,8 +40,33 @@ class RoomManager:
     def get_max_players(self) -> int:
         return self.max_players
 
+    def get_seconds_per_round(self) -> int:
+        return self.seconds_per_round
+    
     def get_random_messages(self, number_of_messages = int) -> Sequence[Message]:
-        ...
+        return random.sample(self.messages, number_of_messages)
+        
+    def get_round_message(self): # Without the answer.
+        return self.round_message
+        
+    def peak_message(self):
+        msg = self.messages.pop(0)
+        
+        answer = msg.author
+        
+        options = [m for m in self.members if m != answer]
+        options = random.sample(options, 3)
+        options.append(answer)
+        random.shuffle(options)
+        
+        self.round_message = RoundMessage(
+            text = msg.text,
+            time = msg.time,
+            date = msg.date,
+            answer = msg.author,
+            options = options
+        )
+        print(self.round_message.text)
         
     # ########################################### #
     #        WebSockets related functions         #
@@ -124,6 +162,50 @@ class RoomManager:
             "type" : "game_started",
             "message" : "The game has started"
         })
+        return True
+
+    async def finish_game(self):
+        await self.broadcast({
+            "type" : "game_finished",
+            "message" : "The game has finished"
+        })
+    
+    async def start_curtain(self):
+        await self.broadcast({
+            "type" : "curtain_started",
+            "message" : "The curtain has started"
+        })
+        
+        await asyncio.sleep(self.curtain_duration)
+        
+        await self.finish_curtain()
+        
+    async def finish_curtain(self):
+        messages_count = len(self.messages)
+        if messages_count > 0:
+            await self.start_round()
+        else:
+            await self.finish_game()
+    
+    async def start_round(self):
+        self.peak_message()
+        await self.broadcast({
+            "type" : "round_started",
+            "message" : "The round has started"
+        })
+    
+    async def finish_round(self):
+        # Clear the active question.
+        # Save the results?
+        # Send a signal to end the round?
+        await self.broadcast({
+            "type" : "round_finished",
+            "message" : "The round has finished",
+            "answer" : self.round_message.answer
+        })
+        
+        
+        
         
                 
 

@@ -19,6 +19,13 @@ class Message(BaseModel):
     time   : HourMinuteTime
     date   : DayMonthYearDate
 
+class RoundMessage(BaseModel):
+    text   : str
+    time   : HourMinuteTime
+    date   : DayMonthYearDate
+    answer : str | None
+    options : list[str]
+
 class Filter(BaseModel):
     members  : list[str] = []    
     min_time : HourMinuteTime | None

@@ -1,7 +1,7 @@
 <script setup>
     import router from "@/router";
     import {ref, onMounted, computed} from "vue";
-    import { connect} from "@/services/websocket";
+    import { connect } from "@/services/websocket";
 
     let socket;
 

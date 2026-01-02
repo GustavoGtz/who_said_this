@@ -4,14 +4,18 @@ const WS_URL =
   ":8000/ws";
 
 let socket = null;
+let currentOnMessage = null;
+
 
 export function connect(onMessage) {
+  currentOnMessage = onMessage;
+
   if (!socket) {
     socket = new WebSocket(WS_URL);
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (onMessage) onMessage(data);
+      if (currentOnMessage) currentOnMessage(data);
     };
   }
 

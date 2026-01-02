@@ -24,7 +24,7 @@ function joinRoom() {
     // TODO: Other case for pool_selection
     
     if (msg.type === "game_started"){
-      router.push("play/pool")
+      router.push("play/game")
     }
 
     if (msg.type === "error") {

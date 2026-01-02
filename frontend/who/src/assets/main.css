@@ -449,18 +449,35 @@ a:hover {
     max-width: 200px;
     height: 56px;
 
-    margin: 5px 5px 5px 5px;
+    margin: 5px;
 
     display: flex;
     align-items: center;
     gap: 20px;
 
-    padding: 16px 16px;
+    padding: 16px;
 
     color: var(--card-bg);
 
-    font-size: 2rem;
+    font-size: 1rem;
     font-weight: 500;
+
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+
+    min-width: 0;
+    overflow:hidden;
+}
+
+.game-answer.correct {
+  font-size: 2.1rem;
+  font-weight: 700;;
+}
+
+.game-answer.wrong {
+  opacity: 0.4;
+  filter: grayscale(1);
 }
 
 .game-answer:nth-of-type(2) {
