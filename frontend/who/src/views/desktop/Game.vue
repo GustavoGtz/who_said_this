@@ -1,4 +1,5 @@
 <script setup>
+    import router from "@/router";
     import { connect } from "@/services/websocket";
     import { ref, reactive, onMounted} from "vue";
 
@@ -85,11 +86,17 @@
     }
 
     async function finishRound() {
+        // Finish the clock
+        clearInterval(timer.value);    
+        timer.value = null;    
+        roundTime.value = 0;
+        
         answerRevealed.value = true
-        // Un peque;o lapso de tiempo aqui . . .
-        startCurtain();
+        setTimeout(() => {
+            startCurtain();
+        }, 2000);
     }
-    
+ 
     function startCountdown() {
         clearInterval(timer.value);
 
@@ -140,6 +147,11 @@
                 finishRound();
             }
 
+            if (msg.type == "game_finished") {
+                console.log("scores")
+                router.push("scores")
+            }
+
             if (msg.type === "error") {
                 alert(msg.message)
             }
@@ -179,8 +191,8 @@
                 v-for="(option, index) in roundMessage.options"
                 :key="index"
                 :class="{
-                    correct:   answerRevealed && option === roundMessage.answer,
-                    incorrect: answerRevealed && option !== roundMessage.answer}">
+                    correct:   answerRevealed && option === answer,
+                    incorrect: answerRevealed && option !== answer}">
                 <div class="game-answer-icon">
                     {{ String.fromCharCode(65 + index) }}
                 </div>

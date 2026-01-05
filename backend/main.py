@@ -229,9 +229,12 @@ async def websocket_endpoint(ws: WebSocket):
             if msg_type == "finish_round":
                 asyncio.create_task(ROOM.finish_round())
             
-            # > Start the question                       #  
-            if msg_type == "question_start":
-                ...
+            # > Send the answer                          #  
+            if msg_type == "send_answer":
+                asyncio.create_task(ROOM.register_answer(
+                    client=ws,
+                    answer=msg['answer']
+                ))
             
             # > End the question                         #  
             if msg_type == "question_end":

@@ -10,7 +10,7 @@
 
     const messageCount = ref()
 
-    const secondsPerRound = ref(100)
+    const secondsPerRound = ref(5)
     const messageSelection = ref("random")
     const rounds = ref(30)
     const samplesPerPlayer = ref(10)

@@ -10,13 +10,15 @@ class RoomManager:
         self.messages = messages
         self.members = self.get_members()
         self.max_players = max_players
-        self.seconds_per_round = 100
-        self.curtain_duration = 5 # seconds
+        self.seconds_per_round = 20
+        self.curtain_duration = 2 # seconds
         
         self.host = None
         self.clients = []
         
         self.round_message = None
+        self.score_per_answer = 500
+        self.round_answers_count = 0
         
     # ########################################### #
     #           GAME related functions            #
@@ -125,7 +127,8 @@ class RoomManager:
         
         self.clients.append({
             "username" : username,
-            "ws" : client
+            "ws" : client,
+            "score": 0
         })
         
         await self.broadcast({
@@ -189,21 +192,37 @@ class RoomManager:
     
     async def start_round(self):
         self.peak_message()
+        self.round_answers_count = 0
+        self.round_correct_answers = 0
         await self.broadcast({
             "type" : "round_started",
             "message" : "The round has started"
         })
     
     async def finish_round(self):
-        # Clear the active question.
-        # Save the results?
-        # Send a signal to end the round?
         await self.broadcast({
             "type" : "round_finished",
             "message" : "The round has finished",
             "answer" : self.round_message.answer
         })
+    
+    async def register_answer(self, client : WebSocket, answer : int):
+        self.round_answers_count += 1
         
+        is_correct = self.round_message.options[answer] == self.round_message.answer
+        
+        if is_correct:
+            client_register = next((c for c in self.clients if c["ws"] is client), None)
+            self.round_correct_answers += 1
+            
+            client_register["score"] += self.score_per_answer / self.round_correct_answers
+        
+        if self.round_answers_count >= len(self.clients):
+            await self.finish_round()
+        
+        
+            
+             
         
         
         
