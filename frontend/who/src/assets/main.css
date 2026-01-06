@@ -403,6 +403,8 @@ a:hover {
     background: var(--bg-accent);
     color: var(--card-bg);
 
+    white-space: pre-line;
+
     border-radius: 0px 14px 14px 14px;
 
     font-size: 0.95rem;

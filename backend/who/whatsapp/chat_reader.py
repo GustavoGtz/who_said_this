@@ -40,9 +40,10 @@ class WhatsappReader:
                         r', (?P<time>[\d]{1,2}:[\d]{1,2}.[AP]M)',
                         r' - (?P<member>[^:]+):',
                         r' (?P<text>.*)']
-        msg_pattern = re.compile(''.join(msg_patterns))
+        msg_pattern = re.compile(''.join(msg_patterns), re.DOTALL)
         
         for msg in self.chat:
+            
             m = msg_pattern.match(msg)
             
             if m:
@@ -50,6 +51,9 @@ class WhatsappReader:
                 msg_time = m.group("time").replace("\u202f", "-")
                 msg_member = m.group("member")
                 msg_text = m.group("text")
+                
+                print("MENSAJE", msg)
+                print("Texto extraido", msg_text)
                 
                 if msg_member not in self.members: self.members.append(msg_member)
                 
@@ -81,7 +85,6 @@ class WhatsappReader:
                 )
                 
                 self.messages.append(message)
-
     def process_chat(self):
         """
         1. Remove trash messages.
@@ -136,7 +139,7 @@ class WhatsappReader:
         for msg in self.chat:
             if msg_pattern.match(msg):
                 if is_multiline:
-                    merged_msgs.append(''.join(multiline_buffer))
+                    merged_msgs.append('\n>'.join(multiline_buffer))
                     is_multiline = False
                 else:
                     if multiline_buffer is not None: merged_msgs.append(multiline_buffer[0])
@@ -174,7 +177,7 @@ class WhatsappReader:
                     multimessage_buffer.append(msg_text)
                     continue
                 elif len(multimessage_buffer) > 0:
-                    merged_msgs.append(''.join(multimessage_buffer))
+                    merged_msgs.append('\n>'.join(multimessage_buffer))
                 
                 multimessage_buffer = [msg]
                 prev_msg_member = msg_member
@@ -212,12 +215,11 @@ class WhatsappReader:
                 msg_text = m.group("text")
 
                 msg_words = clean_text(msg_text, low_quality_words)
-
+            
                 if len(msg_words) > 10:
                     return True
                 else:
                     return False
-            
         self.chat = list(filter(good_enough, self.chat))
         
     
