@@ -47,6 +47,7 @@ class RoomRandomizeMessagesPayload(BaseModel):
 
 class RoomSetSecondsPerRound(BaseModel):
     seconds : int
+
     
 
 

@@ -148,7 +148,6 @@
             }
 
             if (msg.type == "game_finished") {
-                console.log("scores")
                 router.push("scores")
             }
 

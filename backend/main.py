@@ -174,9 +174,7 @@ async def room_get_round_message() -> RoundMessage:
         return round_message
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
-
-    
+        
 # ########################################### #
 #         WEBSOCKETS for the ROOM             #
 # ########################################### #
@@ -236,13 +234,8 @@ async def websocket_endpoint(ws: WebSocket):
                     answer=msg['answer']
                 ))
             
-            # > End the question                         #  
-            if msg_type == "question_end":
-                ...
-            
-            # > Results of the question                  #  
-            if msg_type == "question_result":
-                ...
-            
+            if msg_type == "show_scores":
+                asyncio.create_task(ROOM.broadcast_scores())
+
     except WebSocketDisconnect:
         await ROOM.remove_connection(ws)

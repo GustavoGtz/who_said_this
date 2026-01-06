@@ -220,6 +220,31 @@ class RoomManager:
         if self.round_answers_count >= len(self.clients):
             await self.finish_round()
         
+    async def broadcast_scores(self) -> None:
+        scores = [] 
+        
+        for client in self.clients:
+            score = client["score"]
+            username = client["username"]
+            ws = client["ws"]
+            
+            score = {
+                "type" : "score_showed",
+                "username" : username,
+                "score"    : score
+            }
+            
+            scores.append(score)
+            await ws.send_json(score)
+            
+        scores.sort(key=lambda s: s["score"], reverse=True)
+        await self.host.send_json({
+            "type": "scores_showed",
+            "scores": scores
+        })
+  
+        
+        
         
             
              

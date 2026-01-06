@@ -188,7 +188,7 @@
         class="btn btn-secondary"
         @click="hostConfig()">
         HOST THE GAME
-    </button>
-</div>
+        </button>
+    </div>
 </div>
 </template>
