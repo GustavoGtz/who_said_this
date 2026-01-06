@@ -48,8 +48,14 @@ class RoomRandomizeMessagesPayload(BaseModel):
 class RoomSetSecondsPerRound(BaseModel):
     seconds : int
 
-    
 
+# ########################################### #
+#     COMPARISION FUNCTIONS (PROVISIONAL)     #
+# ########################################### #
 
-    
-    
+def isDateGreater(d1, d2):
+    return (d1.year, d1.month, d1.day) > (d2.year, d2.month, d2.day)
+
+def isTimeGreater(t1, t2):
+    return (t1.hour, t1.minute) > (t2.hour, t2.minute)
+

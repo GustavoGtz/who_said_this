@@ -1,7 +1,7 @@
 import re
 import string
 from typing import Iterator, Sequence
-from who.models import Message, Filter, HourMinuteTime, DayMonthYearDate
+from who.models import Message, Filter, HourMinuteTime, DayMonthYearDate, isDateGreater, isTimeGreater
 
 class WhatsappReader:
     def __init__(self, file: str):
@@ -13,25 +13,37 @@ class WhatsappReader:
         self.process_chat()
 
     def get_members(self) -> Sequence[str]:
-        # TODO: TERMINAR ESTE METODO / MEJORARLO?!
         return self.members
 
     def get_messages_count(self, f: Filter) -> int:
         return len(self.get_messages(f))
             
-    def get_messages(self, f: Filter) -> Iterator[Message]:
-        # TODO: TERMINAR ESTE METODO!
-        
+    def get_messages(self, f: Filter) -> Iterator[Message]:        
         messages = [msg for msg in self.messages if msg.author in f.members]
-        
+
         if f.min_time is not None:
-            pass
+            messages = [
+                msg for msg in messages
+                if not isTimeGreater(f.min_time, msg.time)
+            ]
+
         if f.max_time is not None:
-            pass
+            messages = [
+                msg for msg in messages
+                if not isTimeGreater(msg.time, f.max_time)
+            ]
+
         if f.min_date is not None:
-            pass
+            messages = [
+                msg for msg in messages
+                if not isDateGreater(f.min_date, msg.date)
+            ]
+
         if f.max_date is not None:
-            pass
+            messages = [
+                msg for msg in messages
+                if not isDateGreater(msg.date, f.max_date)
+            ]
         
         return messages
     
@@ -47,13 +59,11 @@ class WhatsappReader:
             m = msg_pattern.match(msg)
             
             if m:
+                
                 msg_date = m.group("date")
                 msg_time = m.group("time").replace("\u202f", "-")
                 msg_member = m.group("member")
                 msg_text = m.group("text")
-                
-                print("MENSAJE", msg)
-                print("Texto extraido", msg_text)
                 
                 if msg_member not in self.members: self.members.append(msg_member)
                 
@@ -69,7 +79,8 @@ class WhatsappReader:
                 
                 # Cast the msg_date from str DayMonthYearDate format 
                 msg_month, msg_day, msg_year = map(int, msg_date.split('/'))
-                
+                msg_year += 2000 # Little fix
+                     
                 message = Message(
                     text = msg_text,
                     author = msg_member,
