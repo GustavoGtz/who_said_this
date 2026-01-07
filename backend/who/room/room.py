@@ -2,6 +2,7 @@ from fastapi import WebSocket
 import random
 from typing import Sequence
 import asyncio
+from fastapi.encoders import jsonable_encoder
 from who.models import Message, RoundMessage
 
 
@@ -10,7 +11,7 @@ class RoomManager:
         self.messages = messages
         self.members = self.get_members()
         self.max_players = max_players
-        self.seconds_per_round = 20
+        self.seconds_per_round = 60
         self.curtain_duration = 2 # seconds
         
         self.host = None
@@ -19,6 +20,9 @@ class RoomManager:
         self.round_message = None
         self.score_per_answer = 500
         self.round_answers_count = 0
+        
+        self.pool_selection = []
+        self.selections_sended = 0
         
     # ########################################### #
     #           GAME related functions            #
@@ -41,14 +45,16 @@ class RoomManager:
     
     def get_max_players(self) -> int:
         return self.max_players
-
+    def get_clients_number(self) -> int:
+        return len(self.clients)
+    
     def get_seconds_per_round(self) -> int:
         return self.seconds_per_round
     
-    def get_random_messages(self, number_of_messages = int) -> Sequence[Message]:
+    def get_random_messages(self, number_of_messages = int,) -> Sequence[Message]:
         return random.sample(self.messages, number_of_messages)
         
-    def get_round_message(self): # Without the answer.
+    def get_round_message(self):
         return self.round_message
         
     def peak_message(self):
@@ -68,7 +74,6 @@ class RoomManager:
             answer = msg.author,
             options = options
         )
-        print(self.round_message.text)
         
     # ########################################### #
     #        WebSockets related functions         #
@@ -205,7 +210,53 @@ class RoomManager:
             "message" : "The round has finished",
             "answer" : self.round_message.answer
         })
-    
+        
+    async def start_pool_selection(self, samples : int, chooses : int):
+        self.pool_selection = []
+        self.selections_sended = 0
+        
+        await self.host.send_json({
+            "type" : "pool_selection_started",
+            "samples" : samples,
+            "chooses" : chooses,
+        })
+        
+        num_clients = len(self.clients)
+        messages_pool = self.get_random_messages(samples*num_clients)
+        messages_pools = [
+            messages_pool[i * samples:(i + 1) * samples]
+            for i in range(num_clients)
+        ]
+        
+        for i, client in enumerate(self.clients):
+            ws = client["ws"]
+            
+            await ws.send_json({
+                "type": "pool_selection_started",
+                "messages_pool": jsonable_encoder(messages_pools[i]),
+                "chooses" : chooses,
+                }) 
+
+    async def register_selection(self, selection : Sequence[Message]):
+        self.pool_selection += selection
+        self.selections_sended += 1
+        
+        await self.host.send_json({
+            "type": "selection_registered",
+            "selections_sended": self.selections_sended,
+            "num_clients": len(self.clients)})
+        
+        if self.selections_sended >= len(self.clients):
+            random.shuffle(self.pool_selection)
+            print(self.pool_selection)
+            self.set_messages(self.pool_selection)
+            
+            self.pool_selection = []
+            self.selections_sended = 0
+            
+            trash = await self.start_game()
+        
+        
     async def register_answer(self, client : WebSocket, answer : int):
         self.round_answers_count += 1
         

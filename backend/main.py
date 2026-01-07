@@ -9,6 +9,7 @@ from who.whatsapp.chat_reader import WhatsappReader
 from who.room.room import RoomManager
 from who.models import (
     Filter,
+    Message,
     RoundMessage,
     RoomInitPayload,
     RoomRandomizeMessagesPayload,
@@ -114,7 +115,18 @@ async def room_get_max_players() -> int:
         return max_players
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
+    
+@app.get("/api/room/get_clients_number", summary="Return the number of clients of the room")
+async def room_get_clients_number() -> int:
+    global ROOM
+    if ROOM is None:
+        raise HTTPException(status_code=400, detail="Room is not inited")
+    
+    try:
+        num_clients = ROOM.get_clients_number()
+        return num_clients
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
 @app.get("/api/room/get_messages_count", summary="Return the count of messages in the room")
 async def room_get_messages_count() -> int:
@@ -210,7 +222,20 @@ async def websocket_endpoint(ws: WebSocket):
                 if not answer: # Error!
                     return
             
-            # TODO: WS calls to the pool selection       #
+            # > Start the pool selection                 #
+            if msg_type == "start_pool_selection":
+                asyncio.create_task(ROOM.start_pool_selection(
+                    samples=msg["samples"],
+                    chooses=msg["chooses"]
+                ))
+                
+            if msg_type == "send_selections":
+                asyncio.create_task(ROOM.register_selection(
+                    selection=[
+                        Message.model_validate(m)
+                        for m in msg["selections"]
+                    ]
+                ))
                 
             # > Start the game                           #  
             if msg_type == "start_game":

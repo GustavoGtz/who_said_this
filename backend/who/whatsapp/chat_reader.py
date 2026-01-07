@@ -59,7 +59,6 @@ class WhatsappReader:
             m = msg_pattern.match(msg)
             
             if m:
-                
                 msg_date = m.group("date")
                 msg_time = m.group("time").replace("\u202f", "-")
                 msg_member = m.group("member")

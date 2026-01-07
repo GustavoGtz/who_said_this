@@ -99,6 +99,25 @@ a:hover {
   color: var(--text-main);
 }
 
+.page-center .pool-counter {
+  text-align: center;
+  font-size: 20rem;
+  font-weight: 600;
+  padding-top: 4rem;
+}
+
+.page-center .pool-counter.uncompleted {
+  color: var(--text-main);
+}
+
+.page-center .pool-counter.completed {
+  color: var(--card-bg);
+}
+
+.page-center .pool-counter.error {
+  color: var(--danger);
+}
+
 .mini-hint {
   bottom: 0.75rem;
   right: 0.75rem;
@@ -291,6 +310,8 @@ a:hover {
 .btn-secondary:active {
   transform: scale(20.0);
 }
+
+
 
 /* =========================
    DOTS LOADER
@@ -602,7 +623,7 @@ a:hover {
 
 .page-mobile button:active {
   background-color: var(--bg-accent);
-  transform: scale(5.0);
+  transform: scale(1);
 }
 
 .game-grid {
@@ -648,4 +669,65 @@ a:hover {
 .game-grid .game-answer.unselected {
   opacity: 0.4;
   pointer-events: none;
+}
+
+.pool-counter {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 600;
+  padding-top: 4rem;
+}
+
+.pool-counter.uncompleted {
+  color: var(--text-main);
+}
+
+.pool-counter.completed {
+  color: var(--card-bg);
+}
+
+.pool-counter.error {
+  color: var(--danger);
+}
+
+.pool-selection {
+  background-color: var(--card-bg);
+  margin: 1rem;
+  padding: 1rem;
+  gap: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.pool-selection button {
+  padding: 12px;
+  background-color: var(--text-main);
+  color: var(--text-muted);
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.pool-selection button.selected {
+  background-color: var(--bg-accent);
+  color: var(--card-bg)
+}
+
+.page-mobile .send-button {
+  display: inline-block;
+  border: None;
+  padding: 1rem;
+  margin-bottom: 3rem;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.page-mobile .send-button:disabled {
+  background-color: var(--text-main);
+  color: var(--text-muted);
+  pointer-events: none;
+  cursor: not-allowed;
 }

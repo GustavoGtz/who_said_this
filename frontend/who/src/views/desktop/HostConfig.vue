@@ -10,7 +10,7 @@
 
     const messageCount = ref()
 
-    const secondsPerRound = ref(5)
+    const secondsPerRound = ref(60)
     const messageSelection = ref("random")
     const rounds = ref(30)
     const samplesPerPlayer = ref(10)
@@ -32,6 +32,8 @@
         )
         })
 
+    
+    // TOOD: CHECK
     const poolModeValid = computed(() => {
         return (
             hasPlayers.value &&
@@ -46,7 +48,7 @@
             : poolModeValid.value
         })
     
-    async function startGame() {
+    async function tryStartGame(){
         if (!canHostGame.value) {
             alert("Invalid game configuration")
             return
@@ -55,35 +57,46 @@
         await setSecondsPerRounds()
 
         if (messageSelection.value === 'random'){
-            const payload = {
-                number_of_messages : rounds.value
-            }
-
-            try {
-                const response = await fetch("http://localhost:8000/api/room/randomize_messages",
-                    {
-                        method : "POST",
-                        headers : {
-                            "Content-Type": "application/json",
-                        },
-                        body : JSON.stringify(payload)
-                    }
-                )
-                if (!response.ok) { throw new Error("Failed to start the game") }
-
-                const data = await response.json()
-                socket.send(JSON.stringify({
-                    type : "start_game"
-                }))
-            } catch (error) {
-                alert(error.message)
-            }
+            await startGame();
         }
         else{
-            // TODO: Do another view to all this proceess (with his mobile view too)!
-            alert("Game mode not implemented yet!")
-            return
+            await startPoolSelection();
         }
+    }
+
+    async function startGame() {
+        const payload = {
+            number_of_messages : rounds.value
+        }
+
+        try {
+            const response = await fetch("http://localhost:8000/api/room/randomize_messages",
+                {
+                    method : "POST",
+                    headers : {
+                        "Content-Type": "application/json",
+                    },
+                    body : JSON.stringify(payload)
+                }
+            )
+            if (!response.ok) { throw new Error("Failed to start the game") }
+
+            const data = await response.json()
+            socket.send(JSON.stringify({
+                type : "start_game"
+            }))
+
+        } catch (error) {
+            alert(error.message)
+        }
+    }
+
+    async function startPoolSelection() {
+        socket.send(JSON.stringify({
+            type : "start_pool_selection",
+            samples : samplesPerPlayer.value,
+            chooses : choosesPerPlayer.value
+        }))
     }
 
     async function setSecondsPerRounds() {
@@ -147,7 +160,6 @@
     
     async function hostParty() {
         socket = connect((msg) => {
-            // cases
             if (msg.type === "user_joined") {
                 players.value.push(msg.username)
             }
@@ -156,6 +168,10 @@
                 players.value = players.value.filter(
                     (player) => player !== msg.username
                 );
+            }
+
+            if (msg.type === "pool_selection_started"){
+                router.push("pool")
             }
 
             if (msg.type === "game_started") {
@@ -247,7 +263,7 @@
                 <button
                     class="btn btn-secondary"
                     :disabled="!canHostGame"
-                    @click="startGame()">
+                    @click="tryStartGame()">
                     START THE GAME
                 </button>
                 <div class="mini-hint">
