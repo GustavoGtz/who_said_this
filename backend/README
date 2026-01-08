@@ -1,0 +1,47 @@
+=-----------------------------------------------=
+!                WHO SAID THIS?                 !
+!                 Backend Docs                  !
+=-----------------------------------------------=
+
+This backend app was built with Python and served
+using UV environments.
+
+Tech Stack
+
+ - Python
+ - FastAPI
+ - Uvicorn
+ - WebSockets
+ - Pydantic
+
+-------------------------------------------------
+
+This project combines the use of regular APIs,
+WebSockets, and models to implement the system.
+
+It is important to say that this version is intended
+to work only as a single server.
+
+-------------------------------------------------
+
+Project Setup
+
+Sync dependencies
+ > uv sync
+
+Run development server
+ > uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+The APIs will be available at: http://localhost:8000
+
+-------------------------------------------------
+
+Project Structure
+
+   src/
+    ├─ who/
+        ├─ room/          -> The code for room party control (including WebSockets)
+        ├─ whatsapp/      -> The specific implementation of a reader in a WhatsApp context
+        ├─ models.py      -> The concrete models used in the backend
+        ├─ protocols.py   -> The concrete protocols used in the backend
+        └─ main.py        -> The main app with the APIs

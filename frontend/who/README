@@ -1,0 +1,39 @@
+=-----------------------------------------------=
+!                WHO SAID THIS?                 !
+!                Frontend  Docs                 !
+=-----------------------------------------------=
+
+This frontend web application was build with Vue 3
+
+Tech Stack
+
+ - Vue 3
+ - Vite
+ - JavaScript
+ - HTML5 & CSS3
+ - npm
+
+-------------------------------------------------
+
+Project Setup
+
+Install dependencies
+ > npm install
+
+Run development server
+ > npm run dev
+
+The app will be available at: http://localhost:5173
+
+-------------------------------------------------
+
+Project Structure
+
+   src/
+    ├─ assets/        -> css file
+    ├─ components/    x
+    ├─ views/         -> desktop and mobile pages
+    ├─ router/        -> Router config
+    ├─ services/      -> WebSockets
+    ├─ App.vue        -> Root component
+    └─ main.js        -> Application entry point
