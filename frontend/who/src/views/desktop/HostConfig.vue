@@ -33,12 +33,12 @@
         })
 
     
-    // TOOD: CHECK
     const poolModeValid = computed(() => {
         return (
             hasPlayers.value &&
             choosesPerPlayer.value > 0 &&
-            players.value.length * choosesPerPlayer.value <= messageCount.value
+            choosesPerPlayer.value <= samplesPerPlayer.value &&
+            players.value.length * samplesPerPlayer.value <= messageCount.value
         )
         })
 
